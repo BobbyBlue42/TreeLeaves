@@ -18,6 +18,9 @@ namespace TreeLeaves
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class CustomVision : ContentPage
     {
+        private string currentType;
+        private double currentProbability;
+
         public CustomVision()
         {
             InitializeComponent();
@@ -49,8 +52,11 @@ namespace TreeLeaves
             });
 
             TagLabel.Text = "Analysing...";
+            PredictionLabel.Text = "";
 
             await MakePredictionRequest(file);
+
+            await postResultsAsync();
         }
 
         static byte[] GetImageAsByteArray(MediaFile file)
@@ -82,25 +88,43 @@ namespace TreeLeaves
                     var responseString = await response.Content.ReadAsStringAsync();
 
                     EvaluationModel responseModel = JsonConvert.DeserializeObject<EvaluationModel>(responseString);
-
-                    /*double max = responseModel.Predictions.Max(m => m.Probability);
-
-                    TagLabel.Text = (max >= 0.5) ? "Hotdog" : "Not hotdog";*/
+                    
                     string tag = "No data on this type of leaf";
                     double max = 0.0;
                     foreach (Prediction prediction in responseModel.Predictions)
                     {
-                        if (prediction.Probability > max && prediction.Probability >= 0.5)
+                        if (prediction.Probability > max && prediction.Probability >= 0.35)
                         {
+                            this.currentType = prediction.Tag;
+                            this.currentProbability = prediction.Probability;
+
+                            max = prediction.Probability;
                             tag = prediction.Tag;
                         }
                     }
 
-                    TagLabel.Text = tag;
+                    TagLabel.Text = "Type: " + tag;
+
+                    if (tag != "No data on this type of leaf")
+                    {
+                        this.currentProbability = max;
+                        PredictionLabel.Text = "Probability: " + max;
+                    }
                 }
 
                 file.Dispose();
             }
+        }
+
+        async Task postResultsAsync()
+        {
+            TreeLeavesModel model = new TreeLeavesModel
+            {
+                Type = this.currentType,
+                Probability = this.currentProbability
+            };
+
+            await AzureManager.AzureManagerInstance.PostTreeLeavesInformation(model);
         }
     }
 }
