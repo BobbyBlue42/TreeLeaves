@@ -3,7 +3,11 @@
     <ContentPage.Content>
         <StackLayout Margin="20" Orientation="Vertical">
             <Button Text="Take Photo and Analyze" Clicked="loadCamera" />
-            <Image x:Name="image" />
+            <StackLayout Orientation="Horizontal">
+                <Label x:Name="TagLabel" />
+                <Label x:Name="PredictionLabel" />
+            </StackLayout>
+            <Image x:Name="image" Aspect="AspectFit" />
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>
