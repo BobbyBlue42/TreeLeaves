@@ -13,7 +13,7 @@ namespace TreeLeaves
         {
             InitializeComponent();
 
-            MainPage = new TreeLeaves.MainPage();
+            MainPage = new TreeLeaves.TabsPage();
         }
 
         protected override void OnStart()
